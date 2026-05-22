@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pear-AI — INFINITY™ REAL-TIME</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --main: #00aaff;
+  --accent: #00eeff;
+  --bg: #020810;
+  --panel: rgba(4, 15, 30, 0.98);
+  --glow: rgba(0,170,255,0.3);
+  --text-body: #c0e8ff;
+  --header-bg: rgba(2,8,16,0.92);
+  --header-border: rgba(0,170,255,0.15);
+  --news-bg: var(--panel);
+  --news-border: rgba(0,170,255,0.25);
+  --switch-wrap-border: rgba(0,170,255,0.2);
+  --menu-item-border: rgba(0,170,255,0.08);
+  --drawer-sep: rgba(0,170,255,0.1);
+  --orb-ring-border: var(--main);
+  --input-placeholder: rgba(0,170,255,0.35);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body { background:var(--bg); color:var(--text-body); font-family:'Rajdhani',sans-serif; overflow:hidden; height:100vh; width:100vw; touch-action:none; transition: background 1.5s ease, color 1.5s ease; }
+
+/* ── INTRO ── */
+#intro { position:fixed; inset:0; z-index:9999; background:#000; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px; transition:opacity 1s; }
+.inf-logo { width:150px; stroke:var(--main); stroke-width:2.5; fill:none; animation:draw 3s infinite alternate; }
+@keyframes draw { 0%{stroke-dasharray:0 500;}100%{stroke-dasharray:500 0;filter:drop-shadow(0 0 30px var(--main));} }
+@keyframes pearPulse { 0%{transform:scale(1);filter:drop-shadow(0 0 10px var(--main));}100%{transform:scale(1.15);filter:drop-shadow(0 0 40px var(--main));} }
+.intro-text { font-family:'Orbitron'; color:var(--main); font-size:12px; letter-spacing:4px; opacity:0.6; animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:0.3;}50%{opacity:1;} }
+
+/* ── APP ── */
+#app { opacity:0; height:100%; display:flex; flex-direction:column; transition:opacity 1.5s; }
+
+/* ── HEADER ── */
+header {
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  z-index: 100;
+  gap: 10px;
+  transition: background 1.5s ease, border-color 1.5s ease;
+}
+.header-left { display:flex; align-items:center; gap:12px; }
+.header-right { display:flex; align-items:center; gap:10px; }
+
+#menu-btn {
+  cursor:pointer; font-size:24px; color:var(--main);
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border-radius:10px; border:1px solid rgba(0,170,255,0.2);
+  transition: all 0.3s, color 1.5s ease; flex-shrink:0;
+}
+#menu-btn:hover { background:rgba(0,170,255,0.1); }
+
+.logo-text { font-family:'Orbitron'; color:var(--main); letter-spacing:2px; font-weight:bold; font-size:13px; white-space:nowrap; transition: color 1.5s ease; }
+
+/* Theme buttons */
+.theme-btns { display:flex; gap:4px; }
+.theme-dot {
+  width:18px; height:18px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:transform 0.2s, border-color 0.2s;
+}
+.theme-dot:hover { transform:scale(1.3); border-color:white; }
+.theme-dot.active { border-color:white; transform:scale(1.2); }
+
+/* Battery widget */
+#bat-widget {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(0,0,0,0.4); border:1px solid rgba(0,170,255,0.25);
+  border-radius:10px; padding:4px 10px; font-size:11px; color:var(--main);
+  white-space:nowrap; transition: background 1.5s ease, border-color 1.5s ease, color 1.5s ease;
+}
+.bat-icon { position:relative; width:24px; height:13px; border:2px solid var(--main); border-radius:3px; transition: border-color 1.5s ease; }
+.bat-icon::after { content:''; position:absolute; right:-5px; top:3px; width:3px; height:7px; background:var(--main); border-radius:0 2px 2px 0; transition: background 1.5s ease; }
+.bat-fill { height:100%; border-radius:1px; transition:width 0.8s ease, background 1.5s ease; }
+
+/* RGB bar */
+#rgb-bar {
+  height:3px; width:100%;
+  background:linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0088ff, #ff00ff, #ff0000);
+  background-size:200% 100%;
+  animation:rgbShift 4s linear infinite;
+  transition:opacity 0.3s;
+}
+@keyframes rgbShift { 0%{background-position:0% 50%;}100%{background-position:200% 50%;} }
+
+#clock { font-family:'Orbitron'; font-size:13px; color:var(--main); white-space:nowrap; transition: color 1.5s ease; }
+
+/* ── DRAWER ── */
+#drawer {
+  position:fixed; top:0; left:-320px; width:280px; height:100%;
+  background:var(--panel); z-index:2000; padding:20px;
+  border-right:1px solid var(--main); box-shadow:10px 0 40px #000;
+  transition:left 0.4s cubic-bezier(.4,0,.2,1), background 1.5s ease, border-color 1.5s ease;
+  display:flex; flex-direction:column; gap:10px;
+}
+.drawer-open { left:0 !important; }
+.drawer-title { font-family:'Orbitron'; color:var(--main); font-size:12px; letter-spacing:3px; margin-bottom:6px; transition: color 1.5s ease; }
+.menu-item {
+  padding:13px 15px; border-radius:14px;
+  background:rgba(255,255,255,0.03); cursor:pointer;
+  display:flex; align-items:center; justify-content:space-between;
+  border:1px solid var(--menu-item-border); transition:background 0.2s, border-color 1.5s ease;
+  font-size:13px;
+}
+.menu-item:hover { background:rgba(0,170,255,0.08); }
+.menu-sep { height:1px; background:var(--drawer-sep); margin:6px 0; transition: background 1.5s ease; }
+
+/* Theme picker in drawer */
+.drawer-themes { display:flex; gap:8px; flex-wrap:wrap; }
+.drawer-theme-btn {
+  padding:6px 12px; border-radius:20px; font-size:11px; cursor:pointer;
+  border:1px solid; transition:all 0.2s; font-family:'Rajdhani';
+}
+
+/* Şarj teması önizleme butonu – canlı gradyan */
+.auto-preview-dot {
+  width:18px; height:18px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:transform 0.2s, border-color 0.2s;
+  flex-shrink:0;
+}
+.auto-preview-dot:hover { transform:scale(1.3); border-color:white; }
+.auto-preview-dot.active { border-color:white; transform:scale(1.2); }
+
+select { background:#000; color:var(--main); border:1px solid var(--main); border-radius:8px; padding:4px 6px; outline:none; font-family:'Rajdhani'; transition: background 1.5s ease, color 1.5s ease, border-color 1.5s ease; }
+
+/* ── MAIN CONTENT ── */
+.main-content { flex:1; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; overflow:hidden; }
+
+/* ── DRAGGABLE PANELS ── */
+.draggable {
+  position:absolute; width:92%; max-width:380px;
+  background:var(--panel); border:1px solid var(--main);
+  border-radius:20px; padding:18px; z-index:500;
+  backdrop-filter:blur(25px); box-shadow:0 0 40px rgba(0,0,0,0.8);
+  cursor:move; display:none;
+  transition: border-color 1.5s ease, box-shadow 1.5s ease, background 1.5s ease;
+}
+.panel-header { display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; pointer-events:none; color:var(--main); font-size:11px; letter-spacing:2px; transition: color 1.5s ease; }
+.close-btn { pointer-events:auto; cursor:pointer; color:var(--main); font-size:18px; opacity:0.7; transition: color 1.5s ease; }
+.close-btn:hover { opacity:1; }
+
+/* ── ORB ── */
+.orb-wrap { position:relative; }
+.orb-ring {
+  position:absolute; border-radius:50%; border:1px solid;
+  border-color:var(--main); opacity:0.2;
+  animation:orbPulse 3s ease-in-out infinite;
+  transition: border-color 1.5s ease;
+}
+.orb-ring:nth-child(1) { width:170px; height:170px; top:-15px; left:-15px; animation-delay:0s; }
+.orb-ring:nth-child(2) { width:200px; height:200px; top:-30px; left:-30px; animation-delay:1s; }
+@keyframes orbPulse { 0%,100%{opacity:0.1;transform:scale(1);}50%{opacity:0.3;transform:scale(1.04);} }
+
+.orb-btn {
+  width:140px; height:140px; border-radius:50%;
+  border:2px solid var(--main); display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 25px var(--glow); cursor:pointer; z-index:10; position:relative;
+  transition: box-shadow 0.3s, border-color 1.5s ease;
+}
+.orb-btn:hover { box-shadow:0 0 40px var(--main), 0 0 80px var(--glow); }
+.listening { box-shadow:0 0 60px var(--main), inset 0 0 30px var(--glow) !important; }
+.orb-inner { width:90px; height:90px; border-radius:50%; background:radial-gradient(circle, var(--main), transparent 85%); opacity:0.5; pointer-events:none; transition:opacity 0.3s; }
+
+/* ── STATUS LINE ── */
+#status-line { font-size:11px; color:var(--main); opacity:0.6; letter-spacing:2px; margin-top:12px; text-align:center; transition: color 1.5s ease; }
+
+/* ── BATTERY MODE INDICATOR ── */
+#bat-mode-bar {
+  display:none; width:100%; max-width:500px;
+  height:4px; border-radius:4px; margin-top:6px;
+  transition: background 1.5s ease;
+}
+
+/* ── NEWS PANEL ── */
+#news-panel {
+  width:100%; max-width:500px;
+  height:210px; background:var(--news-bg); border-radius:22px;
+  padding:14px 16px; overflow-y:auto; border:1px solid var(--news-border);
+  margin-top:16px; transition: border-color 1.5s ease, background 1.5s ease;
+}
+#news-panel::-webkit-scrollbar { width:4px; }
+#news-panel::-webkit-scrollbar-track { background:transparent; }
+#news-panel::-webkit-scrollbar-thumb { background:var(--main); border-radius:4px; }
+
+.news-header { font-size:10px; letter-spacing:3px; color:var(--main); opacity:0.5; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; transition: color 1.5s ease; }
+.news-card { font-size:12.5px; margin-bottom:9px; padding:11px 12px; background:rgba(255,255,255,0.02); border-radius:11px; border-left:3px solid var(--main); line-height:1.45; transition:border-color 1.5s ease, background 0.2s; }
+.news-card:hover { background:rgba(0,170,255,0.05); }
+.news-cat { font-size:10px; opacity:0.5; letter-spacing:1px; margin-bottom:3px; }
+.news-loading { text-align:center; color:var(--main); opacity:0.4; font-size:12px; padding:20px; letter-spacing:2px; }
+.news-dot { display:inline-block; animation:dotBlink 1.2s infinite; }
+.news-dot:nth-child(2) { animation-delay:0.2s; }
+.news-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes dotBlink { 0%,100%{opacity:0.2;}50%{opacity:1;} }
+
+/* ── SWITCHES ── */
+.controls { position:fixed; bottom:15px; right:15px; display:flex; flex-direction:column; gap:8px; z-index:1000; }
+.switch-wrap { display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--panel); padding:9px 14px; border-radius:20px; border:1px solid var(--switch-wrap-border); min-width:155px; font-size:10px; letter-spacing:1px; transition: background 1.5s ease, border-color 1.5s ease; }
+.switch { position:relative; width:34px; height:18px; flex-shrink:0; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; cursor:pointer; inset:0; background:#222; border-radius:34px; transition:.4s; }
+.slider:before { position:absolute; content:""; height:12px; width:12px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.4s; }
+input:checked+.slider { background:var(--main); }
+input:checked+.slider:before { transform:translateX(16px); }
+
+/* ── CHAT INPUT ── */
+#chat-input { width:100%; background:rgba(0,0,0,0.5); border:1px solid var(--main); color:white; padding:11px 14px; border-radius:12px; outline:none; margin-top:10px; font-family:'Rajdhani'; font-size:14px; transition: border-color 1.5s ease, background 1.5s ease, color 1.5s ease; }
+#chat-input::placeholder { color:var(--input-placeholder); }
+
+/* ── WHITE THEME OVERRIDES ── */
+body.theme-white {
+  --main: #1a56db;
+  --accent: #1c4ed8;
+  --glow: rgba(26,86,219,0.15);
+  --bg: #f0f4ff;
+  --panel: rgba(255,255,255,0.97);
+  --text-body: #1e293b;
+  --header-bg: rgba(255,255,255,0.97);
+  --header-border: rgba(26,86,219,0.15);
+  --news-bg: rgba(255,255,255,0.97);
+  --news-border: rgba(26,86,219,0.2);
+  --switch-wrap-border: rgba(26,86,219,0.2);
+  --menu-item-border: rgba(26,86,219,0.12);
+  --drawer-sep: rgba(26,86,219,0.12);
+  --input-placeholder: rgba(26,86,219,0.4);
+}
+body.theme-white #chat-input { background: rgba(240,244,255,0.8); color: #1e293b; }
+body.theme-white .slider { background: #cbd5e1; }
+body.theme-white .slider:before { background: #64748b; }
+body.theme-white input:checked+.slider { background: var(--main); }
+body.theme-white input:checked+.slider:before { background: white; }
+body.theme-white .news-card { background: rgba(26,86,219,0.04); }
+body.theme-white .news-card:hover { background: rgba(26,86,219,0.08); }
+body.theme-white .menu-item { background: rgba(26,86,219,0.03); }
+body.theme-white .menu-item:hover { background: rgba(26,86,219,0.07); }
+body.theme-white #bat-widget { background: rgba(26,86,219,0.06); border-color: rgba(26,86,219,0.25); }
+body.theme-white #drawer { box-shadow: 10px 0 40px rgba(0,0,0,0.12); }
+body.theme-white .draggable { box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+body.theme-white select { background: #f0f4ff; color: #1e293b; }
+body.theme-white .orb-btn:hover { box-shadow: 0 0 40px rgba(26,86,219,0.4), 0 0 80px rgba(26,86,219,0.15); }
+
+/* ── OVERLAY ── */
+#overlay { position:fixed; inset:0; background:rgba(0,0,0,0); z-index:1999; display:none; }
+.overlay-active { display:block !important; }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <div class="inf-logo" style="font-size:100px;width:auto;stroke:none;animation:none;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 30px var(--main));animation:pearPulse 3s infinite alternate;">🍐</div>
+  <div class="intro-text">SİSTEM BAŞLATILIYOR<span class="news-dot">.</span><span class="news-dot">.</span><span class="news-dot">.</span></div>
+</div>
+
+<div id="overlay" onclick="closeDrawer()"></div>
+
+<div id="drawer">
+  <div class="drawer-title">⚙ PROTOKOL PANELİ</div>
+  <div class="menu-sep"></div>
+  <div style="font-size:11px; letter-spacing:2px; color:var(--main); opacity:0.5; margin-bottom:6px; transition: color 1.5s ease;">RENK TEMASI</div>
+  <div class="drawer-themes" id="drawer-themes">
+    <div class="drawer-theme-btn" onclick="setTheme('blue')" data-theme="blue" style="color:#00aaff;border-color:#00aaff;">🔵 Mavi</div>
+    <div class="drawer-theme-btn" onclick="setTheme('cyan')" data-theme="cyan" style="color:#00ffff;border-color:#00ffff;">💠 Cyan</div>
+    <div class="drawer-theme-btn" onclick="setTheme('purple')" data-theme="purple" style="color:#bf00ff;border-color:#bf00ff;">🟣 Mor</div>
+    <div class="drawer-theme-btn" onclick="setTheme('green')" data-theme="green" style="color:#00ff88;border-color:#00ff88;">🟢 Yeşil</div>
+    <div class="drawer-theme-btn" onclick="setTheme('orange')" data-theme="orange" style="color:#ff8800;border-color:#ff8800;">🟠 Turuncu</div>
+    <div class="drawer-theme-btn" onclick="setTheme('red')" data-theme="red" style="color:#ff3333;border-color:#ff3333;">🔴 Kırmızı</div>
+    <div class="drawer-theme-btn" onclick="setTheme('gold')" data-theme="gold" style="color:#ffd700;border-color:#ffd700;">🟡 Gold</div>
+    <div class="drawer-theme-btn" onclick="setTheme('white')" data-theme="white" style="color:#1a56db;border-color:#1a56db;background:rgba(240,244,255,0.8);">⬜ Beyaz</div>
+    <div class="drawer-theme-btn" onclick="setTheme('auto')" data-theme="auto" style="color:#aaa;border-color:#aaa;">🔋 Şarj</div>
+  </div>
+  <div class="menu-sep"></div>
+  <div class="menu-item">
+    <span>SES TONU</span>
+    <select id="voice-gender"><option value="erkek">Erkek</option><option value="kadin">Kadın</option></select>
+  </div>
+  <div class="menu-item" onclick="location.reload()">🔄 Sistemi Yenile</div>
+  <div class="menu-item" onclick="fetchNews()">📡 Haberleri Güncelle</div>
+  <div style="margin-top:auto; font-weight:bold; color:var(--main); text-align:center; font-size:11px; letter-spacing:2px; opacity:0.5; transition: color 1.5s ease;">BY ÇAĞRI ATAV</div>
+</div>
+
+<div id="app">
+  <div id="rgb-bar"></div>
+  <header>
+    <div class="header-left">
+      <div id="menu-btn" onclick="toggleDrawer()">☰</div>
+      <div class="logo-text">🍐 Pear-AI</div>
+    </div>
+    <div id="clock">00:00</div>
+    <div class="header-right">
+      <div class="theme-btns">
+        <div class="theme-dot" onclick="setTheme('blue')" style="background:#00aaff;" title="Mavi"></div>
+        <div class="theme-dot" onclick="setTheme('purple')" style="background:#bf00ff;" title="Mor"></div>
+        <div class="theme-dot" onclick="setTheme('green')" style="background:#00ff88;" title="Yeşil"></div>
+        <div class="theme-dot" onclick="setTheme('white')" style="background:linear-gradient(135deg,#f0f4ff,#1a56db);border:1px solid #cbd5e1;" title="Beyaz"></div>
+        <!-- Şarj modu dot – rengi JS ile canlı güncellenir -->
+        <div class="auto-preview-dot theme-dot" id="auto-dot" onclick="setTheme('auto')" title="Şarj Modu"></div>
+      </div>
+      <div id="bat-widget">
+        <div class="bat-icon"><div class="bat-fill" id="bat-fill"></div></div>
+        <span id="bat-pct">--</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div id="transcript-area" class="draggable" style="top:80px;left:10px;">
+      <div class="panel-header">
+        <span>◈ SÖZCÜK ALANI</span>
+        <span class="close-btn" onclick="closeBox('transcript-area')">✖</span>
+      </div>
+      <p id="transcript-text" style="font-size:14px;line-height:1.5;">Sistem hazır Efendim.</p>
+    </div>
+
+    <div id="input-area" class="draggable" style="top:240px;left:10px;">
+      <div class="panel-header">
+        <span>◈ KLAVYE GİRİŞİ</span>
+        <span class="close-btn" onclick="closeBox('input-area')">✖</span>
+      </div>
+      <input type="text" id="chat-input" placeholder="İşlem veya komut girin..." onkeypress="handleChat(event)">
+    </div>
+
+    <div class="orb-wrap">
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-btn" id="main-orb" onclick="toggleMic()">
+        <div class="orb-inner"></div>
+      </div>
+    </div>
+    <div id="status-line">◆ HAZIR ◆</div>
+
+    <!-- Şarj modu renk barı -->
+    <div id="bat-mode-bar"></div>
+
+    <div id="news-panel">
+      <div class="news-header">
+        <span>◈ CANLI HABERLER</span>
+        <span id="news-time">—</span>
+      </div>
+      <div id="news-list">
+        <div class="news-loading">Haberler yükleniyor<span class="news-dot">.</span><span class="news-dot">.</span><span class="news-dot">.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="switch-wrap"><span>METİN PANELİ</span><label class="switch"><input type="checkbox" id="panel-switch" onchange="syncPanels()"><span class="slider"></span></label></div>
+    <div class="switch-wrap"><span>SESLİ YANIT</span><label class="switch"><input type="checkbox" id="voice-switch" checked><span class="slider"></span></label></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let isListening = false;
+let batLevel = 100;
+let themeMode = 'blue';
+let drawerOpen = false;
+let allNews = [];
+
+// ── BATTERY COLOR MATH ──
+// %100 → mavi (#00aaff)  hue≈200
+// %50  → yeşil (#00ff88) hue≈150
+// %20  → kırmızı (#ff3333) hue≈0
+// Aralarda: doğrusal hue interpolasyon
+function batteryHue(pct) {
+  if (pct >= 50) {
+    // 50-100: yeşil(150) → mavi(200)
+    const t = (pct - 50) / 50;
+    return Math.round(150 + t * 50); // 150..200
+  } else if (pct >= 20) {
+    // 20-50: kırmızı(0) → sarı(60) → yeşil(150) — sarı 35'te geçiş
+    const t = (pct - 20) / 30;
+    return Math.round(t * 150); // 0..150
+  } else {
+    // 0-20: kırmızı kalır ama doygunluk değişir
+    return 0;
+  }
+}
+
+function batteryColorFromPct(pct) {
+  const h = batteryHue(pct);
+  // Düşük şarjda doygunluk biraz artar (daha alarm kırmızısı)
+  const s = pct <= 20 ? 100 : 90;
+  const l = pct <= 20 ? 55 : 58;
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
+function batteryGlowFromPct(pct) {
+  const h = batteryHue(pct);
+  return `hsla(${h}, 90%, 58%, 0.3)`;
+}
+
+// ── THEMES ──
+const THEME_CSS_VARS = {
+  blue:   { main:'#00aaff', accent:'#00eeff', glow:'rgba(0,170,255,0.3)', bg:'#020810', panel:'rgba(4,15,30,0.98)', textBody:'#c0e8ff', headerBg:'rgba(2,8,16,0.92)', headerBorder:'rgba(0,170,255,0.15)', newsBorder:'rgba(0,170,255,0.25)', switchBorder:'rgba(0,170,255,0.2)', menuBorder:'rgba(0,170,255,0.08)', drawerSep:'rgba(0,170,255,0.1)', placeholder:'rgba(0,170,255,0.35)' },
+  cyan:   { main:'#00ffee', accent:'#00ffcc', glow:'rgba(0,255,238,0.3)', bg:'#020810', panel:'rgba(4,15,30,0.98)', textBody:'#c0e8ff', headerBg:'rgba(2,8,16,0.92)', headerBorder:'rgba(0,255,238,0.15)', newsBorder:'rgba(0,255,238,0.25)', switchBorder:'rgba(0,255,238,0.2)', menuBorder:'rgba(0,255,238,0.08)', drawerSep:'rgba(0,255,238,0.1)', placeholder:'rgba(0,255,238,0.35)' },
+  purple: { main:'#bf00ff', accent:'#df44ff', glow:'rgba(191,0,255,0.3)', bg:'#0a0010', panel:'rgba(15,4,30,0.98)', textBody:'#e8c0ff', headerBg:'rgba(10,0,16,0.92)', headerBorder:'rgba(191,0,255,0.15)', newsBorder:'rgba(191,0,255,0.25)', switchBorder:'rgba(191,0,255,0.2)', menuBorder:'rgba(191,0,255,0.08)', drawerSep:'rgba(191,0,255,0.1)', placeholder:'rgba(191,0,255,0.35)' },
+  green:  { main:'#00ff88', accent:'#44ffaa', glow:'rgba(0,255,136,0.3)', bg:'#020810', panel:'rgba(4,15,30,0.98)', textBody:'#c0ffe8', headerBg:'rgba(2,8,16,0.92)', headerBorder:'rgba(0,255,136,0.15)', newsBorder:'rgba(0,255,136,0.25)', switchBorder:'rgba(0,255,136,0.2)', menuBorder:'rgba(0,255,136,0.08)', drawerSep:'rgba(0,255,136,0.1)', placeholder:'rgba(0,255,136,0.35)' },
+  orange: { main:'#ff8800', accent:'#ffaa33', glow:'rgba(255,136,0,0.3)', bg:'#100802', panel:'rgba(30,15,4,0.98)', textBody:'#ffe8c0', headerBg:'rgba(16,8,2,0.92)', headerBorder:'rgba(255,136,0,0.15)', newsBorder:'rgba(255,136,0,0.25)', switchBorder:'rgba(255,136,0,0.2)', menuBorder:'rgba(255,136,0,0.08)', drawerSep:'rgba(255,136,0,0.1)', placeholder:'rgba(255,136,0,0.35)' },
+  red:    { main:'#ff3333', accent:'#ff6666', glow:'rgba(255,51,51,0.3)', bg:'#100202', panel:'rgba(30,4,4,0.98)', textBody:'#ffc0c0', headerBg:'rgba(16,2,2,0.92)', headerBorder:'rgba(255,51,51,0.15)', newsBorder:'rgba(255,51,51,0.25)', switchBorder:'rgba(255,51,51,0.2)', menuBorder:'rgba(255,51,51,0.08)', drawerSep:'rgba(255,51,51,0.1)', placeholder:'rgba(255,51,51,0.35)' },
+  gold:   { main:'#ffd700', accent:'#ffe566', glow:'rgba(255,215,0,0.3)', bg:'#100e02', panel:'rgba(30,28,4,0.98)', textBody:'#fff0c0', headerBg:'rgba(16,14,2,0.92)', headerBorder:'rgba(255,215,0,0.15)', newsBorder:'rgba(255,215,0,0.25)', switchBorder:'rgba(255,215,0,0.2)', menuBorder:'rgba(255,215,0,0.08)', drawerSep:'rgba(255,215,0,0.1)', placeholder:'rgba(255,215,0,0.35)' },
+};
+
+function applyThemeVars(main, glow, bg, panel, textBody, headerBg, headerBorder, newsBorder, switchBorder, menuBorder, drawerSep, placeholder) {
+  const r = document.documentElement;
+  document.body.classList.remove('theme-white');
+  document.body.style.background = bg;
+  document.body.style.color = textBody;
+  r.style.setProperty('--main', main);
+  r.style.setProperty('--glow', glow);
+  r.style.setProperty('--bg', bg);
+  r.style.setProperty('--panel', panel);
+  r.style.setProperty('--text-body', textBody);
+  r.style.setProperty('--header-bg', headerBg);
+  r.style.setProperty('--header-border', headerBorder);
+  r.style.setProperty('--news-bg', panel);
+  r.style.setProperty('--news-border', newsBorder);
+  r.style.setProperty('--switch-wrap-border', switchBorder);
+  r.style.setProperty('--menu-item-border', menuBorder);
+  r.style.setProperty('--drawer-sep', drawerSep);
+  r.style.setProperty('--input-placeholder', placeholder);
+}
+
+function applyTheme(key) {
+  const r = document.documentElement;
+  document.body.classList.remove('theme-white');
+
+  if (key === 'white') {
+    document.body.classList.add('theme-white');
+    r.style.setProperty('--main', '#1a56db');
+    r.style.setProperty('--accent', '#1c4ed8');
+    r.style.setProperty('--glow', 'rgba(26,86,219,0.15)');
+    r.style.setProperty('--bg', '#f0f4ff');
+    r.style.setProperty('--panel', 'rgba(255,255,255,0.97)');
+    r.style.setProperty('--text-body', '#1e293b');
+    r.style.setProperty('--header-bg', 'rgba(255,255,255,0.97)');
+    r.style.setProperty('--header-border', 'rgba(26,86,219,0.15)');
+    r.style.setProperty('--news-bg', 'rgba(255,255,255,0.97)');
+    r.style.setProperty('--news-border', 'rgba(26,86,219,0.2)');
+    r.style.setProperty('--switch-wrap-border', 'rgba(26,86,219,0.2)');
+    r.style.setProperty('--menu-item-border', 'rgba(26,86,219,0.12)');
+    r.style.setProperty('--drawer-sep', 'rgba(26,86,219,0.12)');
+    r.style.setProperty('--input-placeholder', 'rgba(26,86,219,0.4)');
+    document.body.style.color = '#1e293b';
+    document.body.style.background = '#f0f4ff';
+    return;
+  }
+
+  const t = THEME_CSS_VARS[key];
+  if (!t) return;
+  applyThemeVars(
+    t.main, t.glow, t.bg, t.panel, t.textBody,
+    t.headerBg, t.headerBorder, t.newsBorder,
+    t.switchBorder, t.menuBorder, t.drawerSep, t.placeholder
+  );
+}
+
+// ── AUTO TEMA: pil seviyesine göre sürekli renk geçişi ──
+function applyAutoTheme() {
+  const pct = batLevel;
+  const main = batteryColorFromPct(pct);
+  const glow = batteryGlowFromPct(pct);
+  const hue  = batteryHue(pct);
+
+  // Arka plan tonunu da hafifçe boyaya boyala
+  const bgHue = hue;
+  const bg = `hsl(${bgHue}, 60%, 3%)`;
+  const panel = `hsla(${bgHue}, 50%, 5%, 0.98)`;
+  const textBody = `hsl(${bgHue}, 60%, 85%)`;
+  const headerBg = `hsla(${bgHue}, 60%, 2%, 0.92)`;
+  const headerBorder = `hsla(${hue}, 80%, 55%, 0.15)`;
+  const newsBorder = `hsla(${hue}, 80%, 55%, 0.25)`;
+  const switchBorder = `hsla(${hue}, 80%, 55%, 0.2)`;
+  const menuBorder = `hsla(${hue}, 80%, 55%, 0.08)`;
+  const drawerSep = `hsla(${hue}, 80%, 55%, 0.1)`;
+  const placeholder = `hsla(${hue}, 80%, 55%, 0.35)`;
+
+  document.body.classList.remove('theme-white');
+  applyThemeVars(main, glow, bg, panel, textBody, headerBg, headerBorder, newsBorder, switchBorder, menuBorder, drawerSep, placeholder);
+
+  // Şarj barı
+  const bar = document.getElementById('bat-mode-bar');
+  bar.style.display = 'block';
+  // Gradient: kırmızı → sarı → yeşil → mavi, işaretçi pct konumunda
+  bar.style.background = `linear-gradient(90deg,
+    hsl(0,100%,55%) 0%,
+    hsl(60,100%,50%) 30%,
+    hsl(120,90%,50%) 50%,
+    hsl(150,90%,55%) 70%,
+    hsl(200,90%,58%) 100%)`;
+  bar.style.position = 'relative';
+  bar.style.overflow = 'visible';
+  // İşaretçi
+  bar.style.boxShadow = `${pct}% 0 0 2px ${main}`;
+
+  // Şarj dot önizleme güncelle
+  updateAutoDot();
+}
+
+function updateAutoDot() {
+  const dot = document.getElementById('auto-dot');
+  if (!dot) return;
+  const main = batteryColorFromPct(batLevel);
+  const hue2 = batteryHue(batLevel);
+  // Gradient ile canlı gözüksün
+  dot.style.background = `conic-gradient(
+    hsl(0,100%,55%) 0deg,
+    hsl(60,100%,50%) 108deg,
+    hsl(150,90%,55%) 216deg,
+    hsl(200,90%,58%) 324deg,
+    hsl(0,100%,55%) 360deg
+  )`;
+  // Şarj modunda aktifse border main renge dönsün
+  if (themeMode === 'auto') {
+    dot.style.borderColor = main;
+  }
+}
+
+// ── BATTERY UPDATE ──
+function updateBattery() {
+  const fill = document.getElementById('bat-fill');
+  const pct  = document.getElementById('bat-pct');
+  if (fill) {
+    fill.style.width = batLevel + '%';
+    const color = batteryColorFromPct(batLevel);
+    fill.style.background = color;
+    if (pct) { pct.textContent = batLevel + '%'; pct.style.color = color; }
+  }
+  updateAutoDot();
+  if (themeMode === 'auto') applyAutoTheme();
+}
+
+// ── BATTERY API ──
+async function initBattery() {
+  if (navigator.getBattery) {
+    try {
+      const b = await navigator.getBattery();
+      const up = () => { batLevel = Math.round(b.level * 100); updateBattery(); };
+      up(); b.onlevelchange = up;
+    } catch(e) { batLevel = 100; updateBattery(); }
+  } else {
+    batLevel = 100; updateBattery();
+  }
+}
+
+// ── DRAWER ──
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  document.getElementById('drawer').classList.toggle('drawer-open', drawerOpen);
+  document.getElementById('overlay').classList.toggle('overlay-active', drawerOpen);
+  document.getElementById('menu-btn').textContent = drawerOpen ? '✕' : '☰';
+}
+function closeDrawer() {
+  drawerOpen = false;
+  document.getElementById('drawer').classList.remove('drawer-open');
+  document.getElementById('overlay').classList.remove('overlay-active');
+  document.getElementById('menu-btn').textContent = '☰';
+}
+
+function setTheme(mode) {
+  themeMode = mode;
+  closeDrawer();
+
+  // Şarj barını kapat başlangıçta
+  document.getElementById('bat-mode-bar').style.display = 'none';
+
+  if (mode === 'auto') {
+    applyAutoTheme();
+  } else {
+    applyTheme(mode);
+  }
+
+  document.querySelectorAll('[data-theme]').forEach(el => {
+    el.classList.toggle('active', el.dataset.theme === mode);
+  });
+  // Header dotları
+  document.querySelectorAll('.theme-dot:not(#auto-dot)').forEach(el => {
+    el.classList.remove('active');
+  });
+  const autoDot = document.getElementById('auto-dot');
+  if (mode === 'auto') {
+    autoDot.classList.add('active');
+  } else {
+    autoDot.classList.remove('active');
+  }
+}
+
+// ── SPEECH ──
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const rec = SpeechRec ? new SpeechRec() : null;
+if (rec) { rec.lang = 'tr-TR'; rec.continuous = false; }
+
+function toggleMic() {
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+  if (!isListening && rec) { try { rec.start(); } catch(e) {} }
+  else if (rec) { try { rec.stop(); } catch(e) {} }
+}
+if (rec) {
+  rec.onstart = () => {
+    isListening = true;
+    document.getElementById('main-orb').classList.add('listening');
+    document.getElementById('status-line').textContent = '● DİNLİYORUM...';
+  };
+  rec.onend = () => {
+    isListening = false;
+    document.getElementById('main-orb').classList.remove('listening');
+    document.getElementById('status-line').textContent = '◆ HAZIR ◆';
+  };
+  rec.onresult = e => processCommand(e.results[e.results.length-1][0].transcript.toLowerCase());
+}
+
+function handleChat(e) {
+  if (e.key === 'Enter') { processCommand(e.target.value.toLowerCase()); e.target.value = ''; }
+}
+
+function processCommand(msg) {
+  let res = "";
+  const mathMatch = msg.match(/(\d+[\.,]?\d*)\s*(artı|eksi|çarpı|bölü|\+|\-|\*|x|\/)\s*(\d+[\.,]?\d*)/);
+  if (mathMatch) {
+    let n1 = parseFloat(mathMatch[1].replace(',','.'));
+    let op = mathMatch[2];
+    let n2 = parseFloat(mathMatch[3].replace(',','.'));
+    let ans = 0;
+    if (op.includes("artı") || op==="+") ans = n1+n2;
+    else if (op.includes("eksi") || op==="-") ans = n1-n2;
+    else if (op.includes("çarpı") || op==="*" || op==="x") ans = n1*n2;
+    else if (op.includes("bölü") || op==="/") ans = n2!==0 ? (n1/n2).toFixed(4).replace(/\.?0+$/,'') : "tanımsız";
+    res = `İşlemin sonucu: ${ans} Efendim.`;
+  } else if (msg.includes("haberi oku") || msg.includes("haberleri oku") || msg.includes("bugün ne oldu")) {
+    if (allNews.length > 0) {
+      const batch = allNews.slice(0, 5).map(n => n.title);
+      res = "Efendim, öne çıkan başlıklar: " + batch.join(". ") + ".";
+    } else {
+      res = "Haberler yükleniyor Efendim, lütfen bekleyin.";
+    }
+  } else if (msg.includes("haberleri güncelle") || msg.includes("haber güncelle")) {
+    fetchNews();
+    res = "Haberler güncelleniyor Efendim.";
+  } else if (msg.includes("selam") || msg.includes("nasılsın") || msg.includes("merhaba")) {
+    res = `İyiyim Efendim. Şarjınız %${batLevel}. By Çağrı ATAV imzalı sistemler stabil.`;
+  } else if (msg.includes("saat")) {
+    res = `Saat ${new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} Efendim.`;
+  } else if (msg.includes("tarih")) {
+    res = `Bugün ${new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} Efendim.`;
+  } else {
+    res = "Sizi dinliyorum Efendim. Başka bir komut mu?";
+  }
+  speak(res);
+}
+
+function speak(t) {
+  document.getElementById('transcript-area').style.display = 'block';
+  document.getElementById('panel-switch').checked = true;
+  document.getElementById('transcript-text').innerText = t;
+  if (document.getElementById('voice-switch').checked) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'tr-TR';
+    u.pitch = document.getElementById('voice-gender').value === 'erkek' ? 0.8 : 1.3;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+function closeBox(id) { document.getElementById(id).style.display='none'; }
+function syncPanels() {
+  const c = document.getElementById('panel-switch').checked;
+  document.getElementById('transcript-area').style.display = c ? 'block' : 'none';
+  document.getElementById('input-area').style.display = c ? 'block' : 'none';
+}
+
+// ── DRAG ──
+function makeDraggable(el) {
+  let px=0,py=0,sx=0,sy=0;
+  const h = el.querySelector('.panel-header') || el;
+  h.style.pointerEvents = 'auto';
+  h.onmousedown = s; h.ontouchstart = s;
+  function s(e) {
+    if(e.target.classList.contains('close-btn')) return;
+    if(e.type==='touchstart'){sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
+    else{sx=e.clientX;sy=e.clientY;}
+    document.onmousemove=m; document.ontouchmove=m; document.onmouseup=end; document.ontouchend=end;
+  }
+  function m(e) {
+    let cx,cy;
+    if(e.type==='touchmove'){cx=e.touches[0].clientX;cy=e.touches[0].clientY;}else{cx=e.clientX;cy=e.clientY;}
+    px=sx-cx; py=sy-cy; sx=cx; sy=cy;
+    el.style.top=(el.offsetTop-py)+"px"; el.style.left=(el.offsetLeft-px)+"px";
+  }
+  function end(){document.onmousemove=null;document.ontouchmove=null;}
+}
+
+// ── LIVE NEWS ──
+const NEWS_SOURCES = [
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.hurriyet.com.tr%2Frss%2Fanasayfa',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.sabah.com.tr%2FRss%2FAnaSayfa',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.milliyet.com.tr%2Frss%2FrssNew%2FgundemRss.xml',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.ntv.com.tr%2Frss',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cnnturk.com%2Ffeed%2Frss%2Fall%2Fnews',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.haberturk.com%2Frss',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cumhuriyet.com.tr%2Frss%2Fall.xml',
+  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.aa.com.tr%2Ftr%2Frss%2Fdefault',
+];
+
+async function fetchNewsFromRSS(url) {
+  try {
+    const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+    const d = await r.json();
+    if (d.items && d.items.length > 0) {
+      return d.items.map(item => ({
+        title: item.title || '',
+        description: (item.description || '').replace(/<[^>]*>/g,'').substring(0,120),
+        category: item.categories ? item.categories[0] : (d.feed ? d.feed.title : 'Haber'),
+        link: item.link || '',
+        pubDate: item.pubDate || ''
+      })).filter(n => n.title.length > 10);
+    }
+  } catch(e) {}
+  return [];
+}
+
+async function fetchNews() {
+  const listEl = document.getElementById('news-list');
+  const timeEl = document.getElementById('news-time');
+  listEl.innerHTML = '<div class="news-loading">Haberler çekiliyor<span class="news-dot">.</span><span class="news-dot">.</span><span class="news-dot">.</span></div>';
+  let collected = [];
+  const fetches = NEWS_SOURCES.map(url => fetchNewsFromRSS(url));
+  const results = await Promise.allSettled(fetches);
+  results.forEach(r => { if (r.status === 'fulfilled') collected = collected.concat(r.value); });
+  const seen = new Set();
+  collected = collected.filter(n => { const key = n.title.substring(0,40).toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; });
+  for (let i = collected.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [collected[i],collected[j]] = [collected[j],collected[i]]; }
+  if (collected.length < 5) collected = collected.concat(BACKUP_NEWS);
+  allNews = collected;
+  renderNews();
+  timeEl.textContent = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderNews() {
+  const listEl = document.getElementById('news-list');
+  if (allNews.length === 0) { listEl.innerHTML = '<div class="news-loading">Haber bulunamadı.</div>'; return; }
+  listEl.innerHTML = allNews.map(n => `
+    <div class="news-card">
+      <div class="news-cat">${n.category || 'HABER'}</div>
+      <div>${n.title}</div>
+      ${n.description ? `<div style="font-size:11px;opacity:0.45;margin-top:4px;">${n.description}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+const BACKUP_NEWS = [
+  {title:"Merkez Bankası piyasa verilerini paylaştı, döviz kurlarında stabilite bekleniyor.",category:"EKONOMİ"},
+  {title:"Yeni nesil işlemciler 1 nanometre sınırını aşarak veri hızında devrim yarattı.",category:"TEKNOLOJİ"},
+  {title:"Süper Lig'de zirve yarışı kızışıyor, lider takım hazırlıklarını tamamladı.",category:"SPOR"},
+  {title:"Küresel iklim zirvesinde okyanus temizliği için dev bütçe ayrıldı.",category:"DÜNYA"},
+  {title:"Bilim insanları hücre yenilenmesini hızlandıran yeni bir enzim keşfetti.",category:"BİLİM"},
+  {title:"NASA'nın Artemis görevi için tasarlanan roket fırlatma rampasına yerleştirildi.",category:"UZAY"},
+  {title:"Elektrikli araçlarda batarya ömrünü iki katına çıkaran teknoloji duyuruldu.",category:"OTOMOTİV"},
+  {title:"Türkiye'nin yerli insansız savaş uçağı KIZILELMA yeni bir mühimmat testini geçti.",category:"SAVUNMA"},
+  {title:"Teknoloji hisselerindeki yükselişle borsa endeksi yeni bir rekor kırdı.",category:"BORSA"},
+  {title:"Leonardo da Vinci'nin daha önce bilinmeyen bir taslağı İtalya'da bulundu.",category:"SANAT"},
+];
+
+// ── CLOCK ──
+function updateClock() {
+  document.getElementById('clock').innerText = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ── INIT ──
+setTimeout(() => {
+  document.getElementById('intro').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('intro').style.display = 'none';
+    document.getElementById('app').style.opacity = '1';
+    init();
+  }, 1000);
+}, 2200);
+
+function init() {
+  setInterval(updateClock, 1000);
+  initBattery();
+  makeDraggable(document.getElementById("transcript-area"));
+  makeDraggable(document.getElementById("input-area"));
+  fetchNews();
+  setInterval(fetchNews, 5 * 60 * 1000);
+  // Otomatik dot'u başlangıçta renderla
+  updateAutoDot();
+}
+</script>
+</body>
+</html>
